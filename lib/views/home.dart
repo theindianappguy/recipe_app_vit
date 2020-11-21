@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:recipe_app_vite/models/recipe_model.dart';
 import 'package:recipe_app_vite/secrets.dart';
+import 'package:recipe_app_vite/views/recipe_details.dart';
 
 class Home extends StatefulWidget {
   @override
@@ -15,10 +16,12 @@ class _HomeState extends State<Home> {
   TextEditingController textEditingController = new TextEditingController();
 
   getRecipes(query) async {
+    recipes = [];
     var url =
         "https://api.edamam.com/search?q=$query&app_id=cbe99236&app_key=$appKey";
     var response = await http.get(url);
     Map<String, dynamic> jsonData = jsonDecode(response.body);
+    print(jsonData);
 
     jsonData["hits"].forEach((element) {
       RecipeModel recipeModel = new RecipeModel();
@@ -26,12 +29,15 @@ class _HomeState extends State<Home> {
 
       recipes.add(recipeModel);
     });
+
+    setState(() {});
   }
 
   Widget recipeGrid() {
     return Container(
       height: MediaQuery.of(context).size.height - 200,
       child: GridView.builder(
+        padding: EdgeInsets.only(top: 16),
         shrinkWrap: true,
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             mainAxisSpacing: 25, crossAxisSpacing: 30, crossAxisCount: 2),
@@ -53,38 +59,40 @@ class _HomeState extends State<Home> {
       appBar: AppBar(
         title: Text("Recipe App"),
       ),
-      body: Container(
-        padding: EdgeInsets.only(top: 24, right: 16, left: 16),
-        child: Column(
-          children: [
-            Text(
-              "What would you like to eat today?",
-              style: TextStyle(fontSize: 18),
-            ),
-            SizedBox(
-              height: 24,
-            ),
-            Container(
-                child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: textEditingController,
-                    decoration: InputDecoration(hintText: "enter"),
+      body: SingleChildScrollView(
+        child: Container(
+          padding: EdgeInsets.only(top: 24, right: 16, left: 16),
+          child: Column(
+            children: [
+              Text(
+                "What would you like to eat today?",
+                style: TextStyle(fontSize: 18),
+              ),
+              SizedBox(
+                height: 24,
+              ),
+              Container(
+                  child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: textEditingController,
+                      decoration: InputDecoration(hintText: "enter"),
+                    ),
                   ),
-                ),
-                SizedBox(
-                  width: 8,
-                ),
-                GestureDetector(
-                    onTap: () {
-                      getRecipes(textEditingController.text);
-                    },
-                    child: Icon(Icons.search))
-              ],
-            )),
-            recipeGrid()
-          ],
+                  SizedBox(
+                    width: 8,
+                  ),
+                  GestureDetector(
+                      onTap: () {
+                        getRecipes(textEditingController.text);
+                      },
+                      child: Icon(Icons.search))
+                ],
+              )),
+              recipeGrid()
+            ],
+          ),
         ),
       ),
     );
@@ -101,13 +109,37 @@ class RecipeTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      child: Stack(children: [
-        Column(
-          children: [Text(label), Text(source)],
-        ),
-        Image.network(imgUrl)
-      ]),
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => RecipeDetails(recipeDetailsUrl)));
+      },
+      child: Container(
+        child: Stack(children: [
+          Image.network(imgUrl),
+          Container(
+            color: Colors.blue,
+            height: 50,
+            width: double.infinity,
+            child: Column(
+              children: [
+                SizedBox(height: 5),
+                Text(
+                  label,
+                  style: TextStyle(
+                      color: Colors.white, fontWeight: FontWeight.w600),
+                ),
+                Text(
+                  source,
+                  style: TextStyle(color: Colors.white),
+                )
+              ],
+            ),
+          ),
+        ]),
+      ),
     );
   }
 }
